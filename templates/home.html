@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Home</title>
+    </head>
+    <body>
+        <h1>My Website</h1>
+        <h2>{{ title }}</h2>
+
+        {% if infoDetail != undefined %}
+            <h3>{{ infoDetail.version }}</h3>
+
+            <table border="1">
+                <tr>
+                    <td>暱稱</td>
+                    <td>年齡</td>
+                    <td>喜好</td>
+                </tr>
+                <tr>
+                    <td>{{ infoDetail.user_1.nickname }}</td>
+                    <td>{{ infoDetail.user_1.age }}</td>
+                    <td>{{ infoDetail.user_1.hobby }}</td>
+                </tr>
+                <tr>
+                    <td>{{ infoDetail.user_2.nickname }}</td>
+                    <td>{{ infoDetail.user_2.age }}</td>
+                    <td>{{ infoDetail.user_2.hobby }}</td>
+                </tr>
+            </table>
+
+            <hr />
+
+            <table border="1">
+                {% for key, value in infoDetail.items() %}
+                    {% if key != 'version' %}
+                        <tr>
+                            <th> {{ key }} </th>
+                            <td> {{ value.nickname }} </td>
+                            <td> {{ value.age }} </td>
+                            <td> {{ value.hobby }} </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </table>
+
+        {% endif %}
+    </body>
+</html>

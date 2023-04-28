@@ -50,13 +50,187 @@ Press CTRL+C to quit
 ```
 
 # 撰寫技巧整理
+## 路由
+### 基礎運用
+在 `建立與執行` 的 `基礎語法` 中提到使用 `@app.route('/')` 來監聽 URL，而此功能也能夠使 URL 成為參數：
+```
+# 使用 <> 包覆起來的部分會成為參數
+@app.route('/get/accData/<acc_id>', methods=['GET'])
+def getAccData(acc_id):
+    print('Execute getAccData({})'.format(acc_id))
+    return 'Acc ID is {}'.format(acc_id)
+```
+以上述為例，連上 `http://127.0.0.1:5000/get/accData/123` 時，就能看見網頁顯示 `Acc ID is 123`；並且也能指定字元的構成，例如調整為：
+```
+@app.route('/get/accData/abc<acc_id>', methods=['GET'])
+```
+連上 `http://127.0.0.1:5000/get/accData/abc123` 時，同樣就能看見網頁顯示 `Acc ID is 123`；但如果沒有按照設置以 `abc` 起頭，則會顯示 `Not Found`。
+
+### 指定參數型態
+在透過 `<>` 包覆成為變數時，能夠同時指定傳入的參數的型態，例如 `int` 或 `float`：
+```
+@app.route('/plus/one/<int:input_value>', methods=['GET'])
+def plusOne(input_value):
+    print('Execute plusOne({})'.format(input_value))
+    print('- input_value\'s type is {}'.format(type(input_value)))
+    return 'Plus one\'s result is {}'.format(input_value + 1)
+```
+連上 `http://127.0.0.1:5000/plus/one/10` 時，就能看見網頁顯示 `Plus one's result is 11`；但如果將 `<int:input_value>` 的 `int:` 移除，則 input_value 會被視為 `str` 而無法進行後續的加減。
+
+## 網頁頁面
+### 基礎回傳
+前面就能看出回傳時會顯示到網頁上，而回傳的同時也可以包含一些 `html` 的語法：
+```
+@app.route('/basicHTML')
+def basicHTML():
+    return '<html><body><h1>Hello World</h1></body></html>'
+```
+
+### 回傳模版
+簡單的 html 語法還能用上述的方式處理，但稍微複雜一些就不太妥當；透過 `render_template`，可以將 html 檔案回傳給使用者：
+```
+from flask import Flask, render_template
+
+@app.route('/home')
+def home():
+    return render_template('home.html')
+```
+接著，`render_template` 會找尋目錄下的 `templates` 資料夾中的檔案，因此在目錄下建立 `templates` 資料夾，並放入上面用到的 `home.html`：
+```
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Home</title>
+    </head>
+    <body>
+        <h1>My Website</h1>
+        <h2>{{ title }}</h2>
+
+        {% if infoDetail != undefined %}
+            <h3>{{ infoDetail.version }}</h3>
+            <table border="1">
+                <tr>
+                    <td>暱稱</td>
+                    <td>年齡</td>
+                    <td>喜好</td>
+                </tr>
+                <tr>
+                    <td>{{ infoDetail.user_1.nickname }}</td>
+                    <td>{{ infoDetail.user_1.age }}</td>
+                    <td>{{ infoDetail.user_1.hobby }}</td>
+                </tr>
+                <tr>
+                    <td>{{ infoDetail.user_2.nickname }}</td>
+                    <td>{{ infoDetail.user_2.age }}</td>
+                    <td>{{ infoDetail.user_2.hobby }}</td>
+                </tr>
+            </table>
+        {% endif %}
+    </body>
+</html>
+```
+上述包含了很多 `{ ... }` 結構的語法，這是稍後會提到的 `Jinja2 模版引擎`，在這邊請先無視他。此時連上 `http://127.0.0.1:5000/home` 時，就會出現一個簡單的表格網頁了。
+
+### Jinja2 模版引擎
+透過 `Jinja2`，可以將 Python 階段的資料或變數運用到網頁之中，再回傳給使用者。
+
+#### 語法
+此處簡短地介紹語法，後續都有實際的段落使用到。
+
+`{{ 變數名稱 }}` : 顯示變數
+
+`{% if ... %} ... {% endif %}` : if 判斷式
+
+`{% for ... %} ... {% endfor %}` : for 迴圈
+
+#### 直接指定
+最基礎的用法，是在 `render_template` 直接指定名稱與代入的資料：
+```
+@app.route('/home/inlineInfo')
+def homeInlineInfo():
+    return render_template('home.html', title='Inline Info')
+```
+此時連上 `http://127.0.0.1:5000/home/inlineInfo`，原先缺少資料而不會顯示的 `{{ title }}` 就會得到 `Inline Info` 這筆資料並加以顯示。
+
+#### 使用 dict
+當資料筆數比較多的時候，就可以使用 dict：
+```
+@app.route('/home/dictInfo')
+def homeDictInfo():
+    infoDetail = {
+        'version': 'v1.0',
+        'user_1': {
+            'nickname': 'Hong',
+            'age': 28,
+            'hobby': 'Reading'
+        },
+        'user_2': {
+            'nickname': 'Tora',
+            'age': 30,
+            'hobby': 'Cooking'
+        },
+    }
+    return render_template('home.html', title='Inline Info', infoDetail=infoDetail)
+```
+此時連上 `http://127.0.0.1:5000/home/dictInfo`，就會列出更多的資料。
+
+#### 運用 for 迴圈
+延續上述的例子，在 `home.html` 的 `{% if infoDetail != undefined %}` 的段落內再追加：
+```
+<table border="1">
+    {% for key, value in infoDetail.items() %}
+        {% if key != 'version' %}
+            <tr>
+                <th> {{ key }} </th>
+                <td> {{ value.nickname }} </td>
+                <td> {{ value.age }} </td>
+                <td> {{ value.hobby }} </td>
+            </tr>
+        {% endif %}
+    {% endfor %}
+</table>
+```
+如此一來，網頁就會透過 for 迴圈把 infoDetail 中的資料顯示出來。
+
+### 使用 .js 與 .css
+前端工程開發出的 `.js` 與 `.css` 檔案需要放置於 `static` 資料夾下。在建立完 `static` 資料夾後，於該資料夾下再建立 `script.js`：
+```
+function sayHello() {
+    alert('Hello, World!');
+}
+```
+接著，在 `templates` 資料夾下建立 `static.html`：
+```
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Static - Page</title>
+        <script type = "text/javascript" src = "{{ url_for('static', filename = 'script.js') }}" ></script>
+        <!-- <script src="../static/script.js"></script> -->
+    </head>
+    <body>
+        <h1>Template - Page</h1>
+        <button id="btnHello" onClick="sayHello()">Say Hello</button>
+    </body>
+</html>
+```
+最後於 `main.py` 加入：
+```
+@app.route('/static')
+def staticPage():
+    return render_template('static.html')
+```
+如此一來連入 `http://127.0.0.1:5000/static` 時，當中的按鈕就會連動到 `static/script.js` 中的 `sayHello()` 了。
 
 
 # 參照資料
 1. [Welcome to Flask — Flask Documentation (2.3.x)](https://flask.palletsprojects.com/en/2.3.x/)
-2. [【Python Flask 入門指南】輕量級網頁框架教學 | 5 行程式碼 x 架設網站 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天](https://ithelp.ithome.com.tw/articles/10258223) 以及後續相同主題之文章
+2. [【Python Flask 入門指南】輕量級網頁框架教學 | 5 行程式碼 x 架設網站 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天](https://ithelp.ithome.com.tw/articles/10258223)
 3. [【Hello word】實作一個簡單的 Flask 入門 - Max行銷誌](https://www.maxlist.xyz/2020/04/30/flask-helloworld/)
 4. [快速上手 — Flask中文文档(2.1.x)](https://dormousehole.readthedocs.io/en/latest/quickstart.html)
 
 # 更新記錄
 1. 2023-04-27 : 初步建立。
+2. 2023-04-28 : 向後學習。
