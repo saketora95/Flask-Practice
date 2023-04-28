@@ -101,14 +101,15 @@ def home():
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Home</title>
+        <title>Home - Flask</title>
     </head>
     <body>
-        <h1>My Website</h1>
+        <h1>Home - Flask</h1>
         <h2>{{ title }}</h2>
 
         {% if infoDetail != undefined %}
             <h3>{{ infoDetail.version }}</h3>
+
             <table border="1">
                 <tr>
                     <td>暱稱</td>
@@ -206,12 +207,12 @@ function sayHello() {
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>Static - Page</title>
+        <title>Static Page - Flask</title>
         <script type = "text/javascript" src = "{{ url_for('static', filename = 'script.js') }}" ></script>
         <!-- <script src="../static/script.js"></script> -->
     </head>
     <body>
-        <h1>Template - Page</h1>
+        <h1>Static Page - Flask</h1>
         <button id="btnHello" onClick="sayHello()">Say Hello</button>
     </body>
 </html>
@@ -223,6 +224,83 @@ def staticPage():
     return render_template('static.html')
 ```
 如此一來連入 `http://127.0.0.1:5000/static` 時，當中的按鈕就會連動到 `static/script.js` 中的 `sayHello()` 了。
+
+### 表單 Form
+首先，於 `templates` 資料夾下建立 `form.html`：
+```
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Form - Flask</title>
+    </head>
+    <body>
+        <h1>Form - Flask</h1>
+
+        <hr />
+
+        <h1>POST Form</h1>
+        <form action="/submit" method="post">
+            <h2>Enter Name:</h2>
+            <p><input type="text" name="user" /></p>
+            <p><input type="submit" value="submit" /></p>
+        </form>
+
+        <hr />
+
+        <h2>GET Form</h2>
+        <form action="/submit" method="get">
+            <h2>Enter Name:</h2>
+            <p><input type="text" name="user" /></p>
+            <p><input type="submit" value="submit" /></p>
+        </form>
+
+    </body>
+</html>
+```
+當中包含了常見的 `POST` 與 `GET` 方法。接著，回到 `main.py` 新增：
+```
+from flask import Flask, render_template, request, redirect, url_for
+
+# 監聽 URL
+@app.route('/form')
+def formPage():
+    return render_template('form.html')
+
+# 監聽並接收 POST 與 GET 方法
+@app.route('/submit', methods=['POST', 'GET'])
+def submit():
+
+    # 判斷是否為 POST 方法
+    if request.method == 'POST':
+
+        # POST 方法中，取得輸入的參數要以 request.form 進行
+        user = request.form['user']
+        print('Execute submit (POST), user is {}'.format(user))
+
+        # 透過 redirect 與 url_for 進行轉址到 success
+        return redirect(url_for('success', name=user, action='POST'))
+
+    # 不是 POST 方法，為 GET
+    else:
+
+        # GET 方法中，取得輸入的參數要以 request.args 進行
+        user = request.args.get('user')
+        print('Execute submit (GET), user is {}'.format(user))
+
+        # 透過 redirect 與 url_for 進行轉址到 success
+        return redirect(url_for('success', name=user, action='GET'))
+
+# 接收轉址
+@app.route('/success/<action>/<name>')
+def success(name, action):
+    return '{} : Welcome {} ~ !!!'.format(action, name)
+```
+1. 使用者連入 `http://127.0.0.1:5000/form` 會經由 `formPage()` 看見 `form.html`
+2. 操作 `form.html` 的兩個 form，會經由 `action="/submit"` 進入 `submit()`
+3. 在 `submit()` 中進行處理，之後轉址到 `success()` 呈現出來
+
+## Ajax
 
 
 # 參照資料

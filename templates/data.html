@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script type = "text/javascript" src = "{{ url_for('static', filename = 'script.js') }}" ></script>
+    <title>Ajax - Flask</title>
+</head>
+    <body>
+        <h2>API : GET</h2>
+        <button onclick="getTestData()">GET</button>
+
+        <hr />
+
+        <h2>API : POST</h2>
+        <p>Name : <input id="app_name" name="app_name" type="text" /></p>
+        <p>Age : <input id="app_age" name="app_age" type="text" /></p>
+        <p>Hobby : <input id="app_hobby" name="app_hobby" type="text" /></p>
+
+        <!-- Not Done -->
+        <button id="btnPost">POST</button>
+
+        <hr />
+
+        <h3>Console : </h3>
+        <div id="console"></div>
+    </body>
+</html>
