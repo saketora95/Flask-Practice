@@ -301,7 +301,142 @@ def success(name, action):
 3. 在 `submit()` 中進行處理，之後轉址到 `success()` 呈現出來
 
 ## Ajax
+在這邊，嘗試建立一個網頁可以透過 Flask 接收資料並回傳；為此，需要以下項目：
+- `main.py` : 處理監聽、回傳與接收資料的過程。
+```
+# 連入時，回傳模版
+@app.route('/data')
+def webapi():
+    return render_template('data.html')
 
+# 讓網頁的 GET 按鈕會使用 GET 連入 /data/message
+# 透過 GET 連入 /data/message 時，將 static/test_data.json 回傳
+@app.route('/data/message', methods=['GET'])
+def getDataMessage():
+    if request.method == "GET":
+        with open('static/test_data.json', 'r') as f:
+            data = json.load(f)
+        f.close
+        return jsonify(data)
+
+# 讓網頁的 POST 按鈕會使用 POST 連入 /data/message
+# 透過 POST 連入 /data/message 時，將傳來的資料記錄到 static/input.json 中
+@app.route('/data/message', methods=['POST'])
+def setDataMessage():
+    if request.method == "POST":
+        # 取得傳入資料
+        receive_data = request.get_json()
+
+        # 將資料記錄到 static/input.json 中
+        with open('static/input.json', 'w') as f:
+            json.dump({
+                'appInfo': {
+                    'name': receive_data['app_name'],
+                    'age': receive_data['app_age'],
+                    'hobby': receive_data['app_hobby'],
+                }
+            }, f)
+        f.close
+
+        # 回傳結果
+        return jsonify(result='OK')
+```
+- `test_data.json` : 儲存一組固定的資料，供網頁 GET 時使用。
+```
+{
+    "appInfo" : {
+        "name" : "Hong" ,
+        "age" : "28" ,
+        "hobby" : "Reading"
+    }
+}
+```
+- `input.json` : 預設為空白的檔案，用於網頁 POST 資料到伺服器時填入。
+```
+就是空的檔案，在這邊有填寫什麼東西也無妨，最終都會因為 main.py 中的 setDataMessage 設置為覆蓋而被蓋過。
+```
+- `data.html` : 網頁頁面的回傳模版。
+```
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Ajax - Flask</title>
+
+        <!-- 引入準備好的 script.js -->
+        <script type = "text/javascript" src = "{{ url_for('static', filename = 'script.js') }}" ></script>
+    </head>
+    <body>
+        <!-- GET : 使用者按下按鈕後會索取資料並將資料放入 POST 區域中的欄位 -->
+        <h2>API : GET</h2>
+        <button onclick="getTestData()">GET</button>
+
+        <hr />
+
+        <!-- POST : 使用者按下按鈕後會將欄位中的資料傳送給伺服器，並將結果顯示 -->
+        <h2>API : POST</h2>
+        <p>Name : <input id="app_name" name="app_name" type="text" /></p>
+        <p>Age : <input id="app_age" name="app_age" type="text" /></p>
+        <p>Hobby : <input id="app_hobby" name="app_hobby" type="text" /></p>
+        <button onclick="postData()">POST</button>
+        <p id="post_result"></p>
+
+        <hr />
+
+        <!-- Console : 使用者透過 GET 按鈕得到的資料會顯示於此 -->
+        <h3>Console : </h3>
+        <div id="console"></div>
+    </body>
+</html>
+```
+- `script.js` : 透過 JavaScript 處理網頁 GET 與 POST 的部分。
+```
+// GET 按鈕觸發
+function getTestData() {
+    // 向 /data/message 發送 GET
+    fetch('/data/message', {method: 'GET'})
+    // 將取得的資料轉為 Json
+    .then(function(response) {
+        return response.json();
+    })
+    // 將資料填入欄位與 console 中
+    .then(function(data) {
+        document.getElementById('app_name').value = data.appInfo.name;
+        document.getElementById('app_age').value = data.appInfo.age;
+        document.getElementById('app_hobby').value = data.appInfo.hobby;
+
+        document.getElementById('console').innerText = JSON.stringify(data);
+    });
+}
+
+// POST 按鈕觸發
+function postData() {
+    // 整理欄位中的輸入值
+    let post_data = {
+        'app_name': document.getElementById('app_name').value,
+        'app_age': document.getElementById('app_age').value,
+        'app_hobby': document.getElementById('app_hobby').value,
+    };
+
+    // 向 /data/message 發送 POST
+    fetch('/data/message', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(post_data),
+    })
+    // 將取得的資料轉為 Json
+    .then(function(response) {
+        return response.json();
+    })
+    // 將結果填入 post_result 中
+    .then(function(data) {
+        document.getElementById('post_result').innerText = data['result'];
+    });
+}
+```
+上述完成後，在 `http://127.0.0.1:5000/data` 中的 GET 區域按下按鈕，POST 區域的三個欄位就會自動被取得的資料填入，Console 區域中也會記錄 GET 所取得的資料；而按下 POST 區域的按鈕時，會將區域內三個欄位的資料傳遞給伺服器，並記錄至 input.json 中。
 
 # 參照資料
 1. [Welcome to Flask — Flask Documentation (2.3.x)](https://flask.palletsprojects.com/en/2.3.x/)
@@ -312,3 +447,4 @@ def success(name, action):
 # 更新記錄
 1. 2023-04-27 : 初步建立。
 2. 2023-04-28 : 向後學習。
+3. 2023-05-01 : 向後學習。

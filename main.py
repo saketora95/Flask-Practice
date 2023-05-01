@@ -110,31 +110,39 @@ def success(name, action):
 # Ajax
 # ---- ---- ---- ---- ----
 
+# 連入時，回傳模版
 @app.route('/data')
 def webapi():
     return render_template('data.html')
 
+# 讓網頁的 GET 按鈕會使用 GET 連入 /data/message
+# 透過 GET 連入 /data/message 時，將 static/test_data.json 回傳
 @app.route('/data/message', methods=['GET'])
 def getDataMessage():
     if request.method == "GET":
         with open('static/test_data.json', 'r') as f:
             data = json.load(f)
-            print("text : ", data)
         f.close
         return jsonify(data)
 
+# 讓網頁的 POST 按鈕會使用 POST 連入 /data/message
+# 透過 POST 連入 /data/message 時，將傳來的資料記錄到 static/input.json 中
 @app.route('/data/message', methods=['POST'])
 def setDataMessage():
     if request.method == "POST":
-        data = {
-            'appInfo': {
-                'name': request.form['app_name'],
-                'age': request.form['app_age'],
-                'hobby': request.form['app_hobby'],
-            }
-        }
-        print(type(data))
+        # 取得傳入資料
+        receive_data = request.get_json()
+
+        # 將資料記錄到 static/input.json 中
         with open('static/input.json', 'w') as f:
-            json.dump(data, f)
+            json.dump({
+                'appInfo': {
+                    'name': receive_data['app_name'],
+                    'age': receive_data['app_age'],
+                    'hobby': receive_data['app_hobby'],
+                }
+            }, f)
         f.close
+
+        # 回傳結果
         return jsonify(result='OK')
