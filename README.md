@@ -443,8 +443,11 @@ function postData() {
 2. [【Python Flask 入門指南】輕量級網頁框架教學 | 5 行程式碼 x 架設網站 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天](https://ithelp.ithome.com.tw/articles/10258223)
 3. [【Hello word】實作一個簡單的 Flask 入門 - Max行銷誌](https://www.maxlist.xyz/2020/04/30/flask-helloworld/)
 4. [快速上手 — Flask中文文档(2.1.x)](https://dormousehole.readthedocs.io/en/latest/quickstart.html)
+5. [How do I send a POST request using JavaScript?](https://reqbin.com/code/javascript/wzp2hxwh/javascript-post-request-example)
+6. [jquery - how to get data from 'ImmutableMultiDict' in flask - Stack Overflow](https://stackoverflow.com/questions/29091070/how-to-get-data-from-immutablemultidict-in-flask)
 
 # 更新記錄
 1. 2023-04-27 : 初步建立。
 2. 2023-04-28 : 向後學習。
 3. 2023-05-01 : 向後學習。
+4. 2023-05-02 : 補上缺少的參照資料。
