@@ -22,7 +22,22 @@ def hello():
 ```
 
 ## 執行
-於終端機中輸入 `flask run` 執行，但 `Flask` 有預設的執行檔案，沒有特別設置時會找尋目錄下的 `app.py` 或 `wsgi.py` 檔案，若不存在其中一者則會出現錯誤。若要指定 `flask run` 所執行的檔案，可以於終端機中調整（以下假設要執行的檔案為 `main.py`）：
+### 預設的執行檔案
+`Flask` 有預設的執行檔案，沒有特別設置時會找尋目錄下的 `app.py` 或 `wsgi.py` 檔案，若不存在其中一者則會出現錯誤。
+
+### 以參數執行
+在[官方文件](https://flask.palletsprojects.com/en/2.3.x/quickstart/)（[參照資料 [1]](https://flask.palletsprojects.com/en/2.3.x/) 的 Quickstart）中，使用的方法是透過終端機輸入指令並附上參數執行：
+```
+flask --app [file name] run
+```
+假設建立的並不是 `app.py` 而是 `main.py` 的話，則是：
+```
+flask --app main run
+```
+透過這樣的指令執行時，Flask 就會找尋 `main.py` 而不會從預設的名稱下去找尋。
+
+### 以環境設定執行
+在「[參照資料 [3]](https://www.maxlist.xyz/2020/04/30/flask-helloworld/)」中有另一種方式可以指定執行的檔案，同樣假設要執行的檔案為 `main.py`，透過以下指令同樣可以執行：
 - Bash
 ```
 $ export FLASK_APP=main
@@ -48,6 +63,15 @@ WARNING: This is a development server. Do not use it in a production deployment.
  * Running on http://127.0.0.1:5000
 Press CTRL+C to quit
 ```
+
+### 在檔案內部設定 (不推薦)
+還有一種方法是在 `main.py` 中進行設定：
+```
+if __name__ == '__main__':
+    app.run()
+```
+在檔案中填入此段後，只要直接透過 `Python` 執行此檔案即可，雖然很便捷但[官方文件](https://flask.palletsprojects.com/en/1.1.x/server/#in-code)中有指出此方式具有一些問題：
+> This works well for the common case but it does not work well for development which is why from Flask 0.11 onwards the flask method is recommended. The reason for this is that due to how the reload mechanism works there are some bizarre side-effects (like executing certain code twice, sometimes crashing without message or dying when a syntax or import error happens).
 
 # 撰寫技巧整理
 ## 路由
@@ -438,6 +462,27 @@ function postData() {
 ```
 上述完成後，在 `http://127.0.0.1:5000/data` 中的 GET 區域按下按鈕，POST 區域的三個欄位就會自動被取得的資料填入，Console 區域中也會記錄 GET 所取得的資料；而按下 POST 區域的按鈕時，會將區域內三個欄位的資料傳遞給伺服器，並記錄至 input.json 中。
 
+# 其他設定
+此部分會以前述「建立與執行 - 執行 - 以參數執行」提到的方式進行。
+
+## 外部訪問
+Flask 預設上不允許外部訪問，因此若無設定，執行後無法透過 `127.0.0.1` 與 `localhost` 之外的方式連入。透過在 `run` 之後添加參數 `--host=0.0.0.0` 可以開放外部的訪問：
+```
+flask --app main run --host=0.0.0.0
+```
+透過此行執行後，原先執行後出現的訊息 `* Running on http://127.0.0.1:5000` 一行會增多，表示連入的途徑增加了：
+```
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://[你電腦目前的區域網路 IP]:5000
+```
+
+## Debug 模式
+Flask 在執行時，即便任何檔案有所修改，都不會在當下生效，而必須要重新執行 Flask 才會有所變化，啟動 Debug 模式後，檔案如果有所修改，就會立刻自動 reload，減少開發時期中間開開關關的過程；使用上，同樣在 `run` 之後添加參數 ` --debug` 就可以啟動 Debug 模式：
+```
+flask --app main run --debug
+```
+
 # 參照資料
 1. [Welcome to Flask — Flask Documentation (2.3.x)](https://flask.palletsprojects.com/en/2.3.x/)
 2. [【Python Flask 入門指南】輕量級網頁框架教學 | 5 行程式碼 x 架設網站 - iT 邦幫忙::一起幫忙解決難題，拯救 IT 人的一天](https://ithelp.ithome.com.tw/articles/10258223)
@@ -448,6 +493,12 @@ function postData() {
 
 # 更新記錄
 1. 2023-04-27 : 初步建立。
+    - 前言 : 五行程式碼
+    - Python Flask - Hello World
 2. 2023-04-28 : 向後學習。
+    - 網頁模版 - Html 回傳
 3. 2023-05-01 : 向後學習。
-4. 2023-05-02 : 補上缺少的參照資料。
+    - 資料交換 - Form 表單提交 與 Ajax 資料交換
+4. 2023-05-02 : 補上缺少的參照資料與向後學習。
+    - 開發配置 - 外網訪問與熱部署
+5. 2023-05-02 17:00 結束。
